@@ -16,7 +16,7 @@ ChatGPT MCP client
 Vercel Go Function  (api/mcp.go)
       |
       v
-internal/server   (auth + stateless MCP Streamable HTTP)
+pkg/server        (auth + stateless MCP Streamable HTTP)
       |
       v
 tools/list         (currently empty)

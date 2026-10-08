@@ -3,7 +3,7 @@ SHELL := /bin/bash
 .PHONY: fmt test vet check docs-install docs-dev docs-check docs-build docs-preview
 
 fmt:
-	@gofmt -w $$(find api internal -name '*.go')
+	@gofmt -w $$(find api pkg -name '*.go')
 
 test:
 	@go test ./...

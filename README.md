@@ -32,13 +32,13 @@ make docs-check
 make docs-build
 ```
 
-Run the API locally with `vercel dev` after linking the API Vercel project. Run `make docs-dev` for the docs preview. The server entrypoint is `api/mcp.go`; auth and MCP wiring live in `internal/server`.
+Run the API locally with `vercel dev` after linking the API Vercel project. Run `make docs-dev` for the docs preview. The server entrypoint is `api/mcp.go`; auth and MCP wiring live in `pkg/server`.
 
 ## Project layout
 
 ```text
 api/mcp.go                  Vercel Go Function entrypoint
-internal/server/            MCP transport, authentication, tests
+pkg/server/                 MCP transport, authentication, tests
 docs/                       Astro/ZueDocs project, independently deployed
 vercel.json                 MCP route rewrite and API deployment settings
 ```

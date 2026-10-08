@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/amxv/origo/internal/server"
+	"github.com/amxv/origo/pkg/server"
 )
 
 // Handler exposes Origo's stateless MCP endpoint as a Vercel Go Function.
