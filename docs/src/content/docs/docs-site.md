@@ -1,70 +1,18 @@
 ---
-title: Docs site maintenance
-description: Run, edit, validate, and deploy the ZueDocs-powered documentation site embedded in this Go CLI template.
-order: 5
-category: Reference
-summary: Developer notes for maintaining the Astro docs app alongside the Go CLI.
+title: Documentation site
+description: Maintain the Origo Astro/ZueDocs documentation app.
+order: 4
+category: Operations
+summary: Docs content, ZueDocs integration, and local checks.
 ---
 
-## Local development
-
-Install dependencies and start Astro:
+Origo uses the ZueDocs-powered Astro site inherited from the Go bootstrap template. It lives entirely in `docs/` and deploys independently of the Go MCP API.
 
 ```bash
 make docs-install
 make docs-dev
 ```
 
-Astro serves the docs locally, usually at `http://localhost:4321`.
+Edit articles in `docs/src/content/docs/`, the navigation and site identity in `docs/src/data/docs.ts`, and the landing page in `docs/src/pages/index.astro`.
 
-## Files to edit
-
-The docs site is intentionally small:
-
-```bash
-docs/package.json              # isolated docs dependencies and scripts
-docs/astro.config.mjs          # Astro config
-docs/src/data/docs.ts          # site name, repo URL, nav, categories
-docs/src/pages/index.astro     # landing page
-docs/src/pages/docs/index.astro # docs index
-docs/src/pages/docs/[...slug].astro # article route
-docs/src/content/docs/*.md     # documentation pages
-docs/src/styles/global.css     # shared ZueDocs import
-docs/vercel.json               # deployment config
-```
-
-For most updates, edit markdown in `docs/src/content/docs` first.
-
-## ZueDocs package usage
-
-This site imports the shared docs shell from `zuedocs`:
-
-```astro
-import BaseLayout from "zuedocs/layouts/BaseLayout.astro";
-import DocsPageLayout from "zuedocs/layouts/DocsPageLayout.astro";
-```
-
-Local repos should keep their own docs content and `docs/src/data/docs.ts`, while shared shell behavior belongs in the `zuedocs` package.
-
-## Validate changes
-
-Run:
-
-```bash
-make docs-check
-make docs-build
-```
-
-Run these commands serially. Do not run Astro check and build concurrently in the same repo.
-
-## Deployment
-
-The docs site builds to static output in `docs/dist`:
-
-```bash
-make docs-build
-```
-
-For Vercel, use `docs` as the Root Directory. The committed `docs/vercel.json`
-installs and builds the isolated docs workspace and serves `docs/dist` without
-sharing the Go CLI's root `dist/` directory.
+Before a docs deployment, run `make docs-check` and `make docs-build` **sequentially**. Pushing `main` triggers the Vercel docs project automatically.

@@ -1,37 +1,30 @@
 export const siteConfig = {
-  name: "mycli",
-  strapline: "A Go CLI shipped through npm",
+  name: "Origo",
+  strapline: "Source-first access for agents",
   description:
-    "Documentation for mycli, a starter Go command-line tool template with npm distribution, GitHub release automation, and an embedded ZueDocs-powered docs site.",
-  repoUrl: "https://github.com/amxv/go-cli-template",
+    "Origo is a minimal Go MCP server for direct website retrieval and site mapping. Infrastructure is ready; retrieval features are in design.",
+  repoUrl: "https://github.com/amxv/origo",
   accentColor: "#0369a1",
   accentColorDark: "#38bdf8",
   footerSections: [
     {
-      title: "mycli",
-      text:
-        "A starter Go CLI template with native binaries, npm installation, release automation, and docs included from day one."
+      title: "Origo",
+      text: "A small, source-first MCP service for agents. No search engine, no CLI distribution."
     },
     {
-      title: "What this site covers",
-      text:
-        "Installation, local development, command customization, release workflow, npm packaging, and docs site maintenance."
+      title: "Project status",
+      text: "Transport and deployments are being established. Read-link and site mapping are planned, not yet implemented."
     },
     {
       title: "Repository",
       linkPrefix: "Source: ",
-      linkHref: "https://github.com/amxv/go-cli-template",
-      linkLabel: "github.com/amxv/go-cli-template"
+      linkHref: "https://github.com/amxv/origo",
+      linkLabel: "github.com/amxv/origo (private)"
     }
   ]
 } as const;
 
-export const docCategories = [
-  "Start",
-  "Development",
-  "Distribution",
-  "Reference"
-] as const;
+export const docCategories = ["Start", "Design", "Operations"] as const;
 
 export const primaryNav = [
   { href: "/docs", label: "Docs" },

@@ -1,79 +1,34 @@
 ---
-title: Quickstart
-description: Install dependencies, run the starter CLI, and start the bundled ZueDocs site.
+title: Getting started
+description: Connect to Origo's Go MCP endpoint and understand its current scaffold-only status.
 order: 1
 category: Start
-summary: The fastest path from a fresh clone to a working CLI and local docs site.
+summary: MCP endpoint, API-key configuration, and development commands.
 ---
 
-## Clone and initialize
+Origo is not yet a scraper. The deployed server handles MCP transport and authentication, but advertises **zero tools** until the `read_link` and `map_site` design has been approved and implemented.
 
-For a brand-new CLI, create the repository from the directory where the clone
-should be created:
+## MCP endpoint
 
-```bash
-gh repo create acme/pluck \
-  --public \
-  --template amxv/go-cli-template \
-  --clone
+```text
+https://api.origo.ashray.xyz/mcp?key=<your-private-key>
 ```
 
-Then run bootstrap from the new repository root:
+The server is stateless, uses MCP Streamable HTTP, and requires exactly one `key` query parameter matching `ORIGO_API_KEY` in the API deployment.
+
+Keep the full URL private. Query-string keys can be captured by access logs and copied URL histories. Never commit real keys or paste them into public documentation.
+
+## Developer setup
 
 ```bash
-cd pluck
-make bootstrap BOOTSTRAP_ARGS='--cli-name pluck --github-owner acme \
-  --github-repo pluck --npm-package @acme/pluck --license Apache-2.0'
-```
-
-The bootstrap command runs from the repository root and never reclones. Omit
-`--public` in the GitHub command for the safe private default. Use public
-visibility for the normal anonymous npm installation path.
-
-For an existing clone, run `make bootstrap` with the identity options shown in the
-customization guide. No manual `mycli` rename sweep is required.
-
-## Install dependencies
-
-Install Go, Node.js, and Bun, then install JavaScript dependencies:
-
-```bash
-make docs-install
-```
-
-The repository uses Go for the CLI, Node for the npm wrapper, and a self-contained
-Astro/ZueDocs workspace under `docs/` for the docs site.
-
-## Run the starter CLI
-
-Use the make targets to validate and build the starter command:
-
-```bash
+git clone git@github.com:amxv/origo.git
+cd origo
 make check
-make build
-./dist/mycli --help
-./dist/mycli hello
+make docs-install
+make docs-check
+make docs-build
 ```
 
-The sample command is intentionally small so it is easy to replace.
+For local API testing, link the API Vercel project and run `vercel dev`. For docs, run `make docs-dev` from the repository root.
 
-## Start the docs site
-
-Run the embedded documentation site locally:
-
-```bash
-make docs-dev
-```
-
-Astro usually serves the site at `http://localhost:4321`.
-
-## First customization pass
-
-Replace the starter command behavior in:
-
-```bash
-internal/app/app.go
-internal/app/app_test.go
-```
-
-Keep the docs open while you edit so the quickstart, command reference, and release notes stay aligned with the actual CLI.
+No npm package, executable shim, CLI binary, release tag, or GitHub Release is needed.
