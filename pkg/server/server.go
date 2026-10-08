@@ -12,8 +12,7 @@ import (
 
 var transport = mcp.NewStreamableHTTPHandler(
 	func(*http.Request) *mcp.Server {
-		// No tools are registered until the read-link and map-site design is approved.
-		return mcp.NewServer(&mcp.Implementation{Name: "origo", Version: "0.1.0"}, nil)
+		return makeServer()
 	},
 	&mcp.StreamableHTTPOptions{Stateless: true, JSONResponse: true},
 )
@@ -27,7 +26,7 @@ func Handler() http.Handler {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Robots-Tag", "noindex")
 
-		secret := strings.TrimSpace(os.Getenv("ORIGO_API_KEY"))
+		secret := strings.TrimSpace(os.Getenv("MCP_API_KEY"))
 		if secret == "" {
 			http.Error(w, "MCP endpoint not configured", http.StatusServiceUnavailable)
 			return

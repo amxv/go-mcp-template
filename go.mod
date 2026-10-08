@@ -1,4 +1,4 @@
-module github.com/amxv/origo
+module github.com/amxv/go-mcp-template
 
 go 1.26
 

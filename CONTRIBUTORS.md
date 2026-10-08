@@ -1,15 +1,7 @@
-# Contributing to Origo
+# Contributing to Go MCP Template
 
-Origo is currently a private, infrastructure-only project. Work is organized around a small Go MCP API and its independently deployed ZueDocs website.
+This project provides a reusable Go/Vercel/Streamable HTTP MCP baseline. Make small, provider-agnostic improvements that are useful to future server projects.
 
-## Development
+Run `make check` for Go changes and `make docs-check` then `make docs-build` for docs changes (serially). Keep API examples deterministic and safe to invoke without external accounts.
 
-Run `make check` before pushing Go changes. Run `make docs-install`, then `make docs-check` followed by `make docs-build` for documentation changes. Do not run the docs check and build concurrently.
-
-## Deployment
-
-Both Vercel projects are connected to `amxv/origo` and deploy from `main` automatically. The API project root is `/`; the docs project root is `/docs`. Keep API secrets in Vercel environment variables. No GitHub Releases, npm packages, or version tags are needed.
-
-## Product scope
-
-The only planned MCP tools are `read_link` and `map_site`; implementation requires prior design discussion. Search is explicitly out of scope.
+Changes pushed to `main` deploy in each project created from the template. No GitHub releases, CLI wrappers, npm distribution, or tagged releases are part of this template.

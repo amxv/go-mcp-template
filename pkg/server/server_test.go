@@ -8,7 +8,7 @@ import (
 )
 
 func TestMCPRequiresConfiguredKey(t *testing.T) {
-	t.Setenv("ORIGO_API_KEY", "")
+	t.Setenv("MCP_API_KEY", "")
 	req := httptest.NewRequest(http.MethodPost, "/mcp?key=example", nil)
 	recorder := httptest.NewRecorder()
 	Handler().ServeHTTP(recorder, req)
@@ -18,7 +18,7 @@ func TestMCPRequiresConfiguredKey(t *testing.T) {
 }
 
 func TestMCPRejectsMissingAndInvalidKeys(t *testing.T) {
-	t.Setenv("ORIGO_API_KEY", "my-private-key")
+	t.Setenv("MCP_API_KEY", "my-private-key")
 	for _, path := range []string{"/mcp", "/mcp?key=wrong", "/mcp?key=my-private-key&key=wrong"} {
 		req := httptest.NewRequest(http.MethodPost, path, nil)
 		recorder := httptest.NewRecorder()
@@ -32,15 +32,17 @@ func TestMCPRejectsMissingAndInvalidKeys(t *testing.T) {
 	}
 }
 
-func TestMCPStatelessHandshakeAndEmptyToolList(t *testing.T) {
-	t.Setenv("ORIGO_API_KEY", "my-private-key")
+func TestMCPStatelessHandshakeAndSampleTools(t *testing.T) {
+	t.Setenv("MCP_API_KEY", "my-private-key")
 	for _, test := range []struct {
 		name     string
 		body     string
 		contains string
 	}{
-		{"initialize", `{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"test","version":"1"}}}`, `"name":"origo"`},
-		{"tools/list", `{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}`, `"tools":[]`},
+		{"initialize", `{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"test","version":"1"}}}`, `"name":"go-mcp-template"`},
+		{"tools/list", `{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}`, `"name":"echo_text"`},
+		{"echo", `{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"echo_text","arguments":{"text":"hello"}}}`, `"text":"hello"`},
+		{"add", `{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"add_numbers","arguments":{"a":2.5,"b":3}}}`, `"sum":5.5`},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/mcp?key=my-private-key", strings.NewReader(test.body))

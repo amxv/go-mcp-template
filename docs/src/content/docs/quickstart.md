@@ -1,34 +1,41 @@
 ---
-title: Getting started
-description: Connect to Origo's Go MCP endpoint and understand its current scaffold-only status.
+title: Quickstart
+description: Clone the Go MCP template, run its sample tools, and deploy it to Vercel.
 order: 1
 category: Start
-summary: MCP endpoint, API-key configuration, and development commands.
+summary: Template setup, sample tools, credentials, and local checks.
 ---
 
-Origo is not yet a scraper. The deployed server handles MCP transport and authentication, but advertises **zero tools** until the `read_link` and `map_site` design has been approved and implemented.
+## Create and clone
 
-## MCP endpoint
+Create a private repository using [Go MCP Template](https://github.com/amxv/go-mcp-template/generate), then clone it. Update the Go module path in `go.mod` and the import in `api/mcp.go`.
 
-```text
-https://api.origo.ashray.xyz/mcp?key=<your-private-key>
-```
-
-The server is stateless, uses MCP Streamable HTTP, and requires exactly one `key` query parameter matching `ORIGO_API_KEY` in the API deployment.
-
-Keep the full URL private. Query-string keys can be captured by access logs and copied URL histories. Never commit real keys or paste them into public documentation.
-
-## Developer setup
+Run the backend checks:
 
 ```bash
-git clone git@github.com:amxv/origo.git
-cd origo
 make check
-make docs-install
-make docs-check
-make docs-build
 ```
 
-For local API testing, link the API Vercel project and run `vercel dev`. For docs, run `make docs-dev` from the repository root.
+The server uses the official Go MCP SDK. The implementation lives in `pkg/server/tools.go` and exposes **two runnable tools**:
 
-No npm package, executable shim, CLI binary, release tag, or GitHub Release is needed.
+- `echo_text`: `{ "text": "hello" }` returns text `hello`.
+- `add_numbers`: `{ "a": 2, "b": 3 }` returns `{ "sum": 5 }` as structured MCP output.
+
+## Production endpoint
+
+Deploy the repository root to Vercel, selecting **Other** as the framework. Configure the Production secret `MCP_API_KEY` with a long randomly generated value.
+
+```text
+https://your-domain.example/mcp?key=<your-private-key>
+```
+
+This is a **stateless Streamable HTTP** MCP server. You don't need a session database. The server denies all requests if `MCP_API_KEY` is missing. Treat the full URL as a secret; query keys can appear in proxy logs and copied URLs.
+
+## Local documentation
+
+```bash
+make docs-install
+make docs-dev
+```
+
+The bundled ZueDocs site lives entirely under `docs/` and can be deployed as a second Vercel project.

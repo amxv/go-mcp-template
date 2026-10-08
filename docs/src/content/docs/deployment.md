@@ -1,28 +1,32 @@
 ---
 title: Deployment
-description: How the Go API and Astro/ZueDocs site are deployed separately through Vercel.
+description: Set up the Go MCP Function and optional ZueDocs site as separate Vercel projects.
 order: 3
 category: Operations
-summary: Go Function and docs deployments, DNS, and API-key handling.
+summary: Vercel, custom domains, API keys, and Git-triggered deployments.
 ---
 
-## API project
+## API Vercel project
 
-Root Directory: repository root. Framework: Other / no frontend framework. Vercel's native Go Functions runtime picks up `api/mcp.go`. The root `vercel.json` rewrites `/mcp` to `/api/mcp`.
+Create a new Vercel project from your Git repository. Its **Root Directory** should be the repository root (`/`), Framework Preset **Other**. The root `vercel.json` maps `/mcp` to the Go Function under `api/mcp.go` and limits Git auto-deployments to `main`.
 
-Set the server-only secret `ORIGO_API_KEY` in the Vercel API project's Production environment before exposing the authenticated URL. Never store it in GitHub, docs, or source control.
+Set **`MCP_API_KEY`** as a Production environment variable; use a long random value and keep it secret.
 
-## Docs project
+```text
+https://api.your-domain.example/mcp?key=<your-secret>
+```
 
-Root Directory: `docs/`. Framework: Astro. `docs/vercel.json` runs `bun install --frozen-lockfile` followed by `bun run build`, publishing `dist/`. No API secrets belong here.
+Test the MCP initialization handshake and verify that unauthenticated requests get 401 before connecting a client.
 
-Both projects are linked to `amxv/origo`. Pushes to `main` redeploy automatically. There is no npm release or GitHub Actions release workflow.
+## Documentation project
 
-## Domains
+If desired, create a separate Vercel project from the same Git repository and set Root Directory to **`docs`** and Framework Preset to **Astro**. `docs/vercel.json` configures the isolated Bun installation and Astro build. The docs project doesn't need access to MCP credentials.
 
-The docs use `origo.ashray.xyz`. The API uses `api.origo.ashray.xyz`. DNS is managed under the `ashray.xyz` Cloudflare zone; the domain records should remain DNS-only for Vercel ownership verification.
+## Custom domains
 
-## Local validation
+Add each host to the corresponding Vercel project, inspect its required DNS records, and configure those records in your DNS provider. Do not assume that the API host and docs host should point to the same project.
+
+## Local checks
 
 ```bash
 make check
@@ -31,4 +35,4 @@ make docs-check
 make docs-build
 ```
 
-Run docs check and build sequentially.
+Run the last two commands serially.

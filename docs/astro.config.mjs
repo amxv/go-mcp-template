@@ -3,7 +3,6 @@ import zuedocs from "zuedocs/astro";
 
 export default defineConfig({
   output: "static",
-  site: "https://origo.ashray.xyz",
   integrations: [zuedocs()],
   vite: {
     build: {

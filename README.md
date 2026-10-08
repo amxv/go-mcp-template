@@ -1,29 +1,34 @@
-# Origo
+# Go MCP Template
 
-Origo is a Go MCP server for source-first web retrieval. It is intended as a complementary tool for agents when their built-in web access cannot retrieve a page. It does **not** provide web search.
+A minimal, production-ready **Go MCP server template** that deploys as a Vercel serverless function. It uses the official Model Context Protocol Go SDK, stateless Streamable HTTP, simple API-key authentication, and an optional bundled ZueDocs site.
 
-**Status: infrastructure scaffold only.** The MCP endpoint is live-ready, but no scraping tools are registered yet. The planned model-facing surface is exactly two tools, `read_link` and `map_site`, pending design review. Firecrawl, direct Markdown, and GitHub-native retrieval are future implementations, not active features.
+**This is infrastructure, not a CLI.** There is no npm package, executable shim, release workflow, or version-tag pipeline. Vercel deploys the service from the `main` branch.
 
-## Endpoints
+## Included
 
-| Surface | URL | Vercel project root |
-| --- | --- | --- |
-| MCP API | `https://api.origo.ashray.xyz/mcp?key=<key>` | Repository root |
-| ZueDocs | `https://origo.ashray.xyz` | `docs/` |
+- `api/mcp.go`: minimal Vercel Go Function entrypoint.
+- `pkg/server/server.go`: fail-closed `?key=` authentication and stateless MCP Streamable HTTP.
+- `pkg/server/tools.go`: two fully working sample tools, **`echo_text`** (text result) and **`add_numbers`** (structured JSON result).
+- `pkg/server/server_test.go`: end-to-end HTTP JSON-RPC tests for authentication, initialization, tools/list, and tools/call.
+- `docs/`: Astro + ZueDocs documentation workspace that can deploy independently to another Vercel project.
+- `vercel.json`: production-friendly `/mcp` rewrite, Go Function settings, and `main` deployment routing.
 
-The two surfaces are deployed as independent Vercel projects connected to the same GitHub repository. Only pushes to `main` deploy automatically; there is no CLI, npm package, release workflow, or tagged release process.
+## Start a new project
 
-## Authentication
+1. [Create a repository from this template](https://github.com/amxv/go-mcp-template/generate) and clone it.
+2. Replace `github.com/amxv/go-mcp-template` in `go.mod` and `api/mcp.go` with your new module path.
+3. Rename the MCP implementation in `pkg/server/tools.go` and replace the two sample handlers with your real tools.
+4. Set up a Vercel project with the repository root as its Root Directory, Framework Preset **Other**, and Git auto-deployments on `main`.
+5. Set a long random secret in the Vercel **Production** environment as `MCP_API_KEY`.
+6. Connect a ChatGPT or other MCP client to `https://your-api-domain.example/mcp?key=<your-secret>`.
 
-Set `ORIGO_API_KEY` as a secret in the API Vercel project's environment. Access to `/mcp` requires exactly one matching `key` query parameter; the server fails closed if its key is unset. Use a long random key, and do not commit it.
+For a custom domain, attach it to Vercel and configure the DNS record Vercel provides. Keep DNS-only mode during ownership verification.
 
-Query-string credentials can appear in platform access logs and copied URLs. Treat MCP URLs as secrets, avoid redirects, and never put an authenticated URL into analytics, browser history, documentation, or support logs.
-
-The endpoint implements stateless MCP Streamable HTTP using the official Go SDK and currently returns an empty tool list. A successful handshake only means transport and auth work, **not** that website access has been implemented.
+**Security:** Query parameters can be logged by intermediaries. Treat the authenticated URL as a secret, never commit keys, and do not paste it into public docs or logs. The server fails closed when `MCP_API_KEY` is unset.
 
 ## Development
 
-Requirements: Go 1.26+, Bun (for ZueDocs), Vercel CLI (for deploying).
+Requirements: Go 1.26+ and Bun (only for the docs).
 
 ```sh
 make check
@@ -32,19 +37,18 @@ make docs-check
 make docs-build
 ```
 
-Run the API locally with `vercel dev` after linking the API Vercel project. Run `make docs-dev` for the docs preview. The server entrypoint is `api/mcp.go`; auth and MCP wiring live in `pkg/server`.
+The sample tools can be tested entirely offline. For local HTTP testing, link the API project with Vercel and run `vercel dev` with `MCP_API_KEY` configured.
 
-## Project layout
+## Editing the MCP tool surface
 
-```text
-api/mcp.go                  Vercel Go Function entrypoint
-pkg/server/                 MCP transport, authentication, tests
-docs/                       Astro/ZueDocs project, independently deployed
-vercel.json                 MCP route rewrite and API deployment settings
-```
+Handlers use `mcp.AddTool` with typed inputs and optional typed outputs. Tools are defined in `pkg/server/tools.go`; the public entrypoint and authentication don't need to change.
 
-## Next phase (discussion first)
+Use **`echo_text`** for the unstructured text response example and **`add_numbers`** for the JSON schema/structured output example. Delete or rename these when adapting the template; don't ship irrelevant samples in a production service.
 
-Research and agree on WebCTX's optimized Markdown/GitHub retrieval, Firecrawl Scrape and Map, and fallback approaches before implementing the two tools. See the [architecture notes](https://origo.ashray.xyz/docs/architecture).
+## Docs site
+
+The docs app is self-contained under `docs/`. Link it to a **separate** Vercel project with Root Directory `docs`, Framework Preset Astro, and its own domain. It doesn't need MCP credentials and shouldn't receive them.
+
+Documentation: [`docs/src/content/docs`](docs/src/content/docs) and [`docs/src/data/docs.ts`](docs/src/data/docs.ts).
 
 Licensed under Apache-2.0.

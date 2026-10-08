@@ -1,47 +1,40 @@
 ---
 title: Architecture
-description: How Origo separates the MCP boundary from future retrieval adapters.
+description: Understand the Go Function, auth middleware, stateless MCP transport and sample tools.
 order: 2
 category: Design
-summary: Two planned tools, no search, with source-first retrieval principles.
+summary: What to change when implementing a new MCP service.
 ---
 
-## Infrastructure now
+## Request flow
 
 ```text
-ChatGPT MCP client
-      |
-      | POST /mcp?key=...
-      v
-Vercel Go Function  (api/mcp.go)
-      |
-      v
-pkg/server        (auth + stateless MCP Streamable HTTP)
-      |
-      v
-tools/list         (currently empty)
+ChatGPT or another MCP client
+       │
+       ▼ POST /mcp?key=...
+Vercel Go Function        api/mcp.go
+       │
+       ▼
+Authentication + HTTP    pkg/server/server.go
+       │
+       ▼
+Stateless MCP server     pkg/server/tools.go
+       ├─ echo_text
+       └─ add_numbers
 ```
 
-The code uses the official Go MCP SDK with stateless Streamable HTTP. It does not require a Redis-backed session store.
+The code uses the official `github.com/modelcontextprotocol/go-sdk/mcp` implementation. Streamable HTTP is **stateless** with JSON responses, so any Vercel function instance can handle any request.
 
-## Future tool boundary
+The `MCP_API_KEY` is loaded from the runtime environment and checked in constant time. Missing configuration returns HTTP 503; an absent or incorrect key returns HTTP 401. Responses include no-store and no-referrer headers.
 
-Origo is deliberately limited to exactly two model-facing tools:
+## Adding a tool
 
-- `read_link`: return useful, source-grounded Markdown from a URL.
-- `map_site`: return discoverable URLs and metadata from a website.
+In `pkg/server/tools.go`, use `mcp.AddTool` with a typed Go struct for input. The Go SDK generates a JSON Schema from the struct and validates arguments before calling your handler.
 
-Website search is excluded. Retrieval implementations will be chosen after reviewing WebCTX's GitHub-native paths, `.md` paths, and current Firecrawl APIs.
+`echo_text` demonstrates returning `mcp.TextContent`; `add_numbers` demonstrates returning a typed Go value that becomes `structuredContent` automatically.
 
-Internal adapters may use direct Markdown, GitHub APIs, Firecrawl scrape and map, or a stronger browser-based fallback. These adapters are **not** additional model-facing MCP tools.
+**Important for Vercel:** Go Functions compile under a generated handler package. Import application code from a public Go package such as `pkg/server`, not directly from a Go `internal/` package. The generated handler can't satisfy Go's internal-import restriction, even though a local Go build can.
 
-## Deployment boundaries
+## Boundaries
 
-The same private GitHub repository deploys two Vercel projects:
-
-| Project | Root | Host |
-| --- | --- | --- |
-| Origo API | `/` | `api.origo.ashray.xyz` |
-| Origo docs | `/docs` | `origo.ashray.xyz` |
-
-Each project auto-deploys commits to `main`. There is no CLI distribution pipeline.
+Keep the entrypoint small, authentication separate, and real application logic in small Go packages. Don't expose new tools until they are implemented and covered by tests. Neither Redis nor CLI release machinery is necessary for the basic MCP transport.

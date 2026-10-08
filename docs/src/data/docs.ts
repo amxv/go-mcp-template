@@ -1,25 +1,25 @@
 export const siteConfig = {
-  name: "Origo",
-  strapline: "Source-first access for agents",
+  name: "Go MCP Template",
+  strapline: "A small Go MCP server for Vercel",
   description:
-    "Origo is a minimal Go MCP server for direct website retrieval and site mapping. Infrastructure is ready; retrieval features are in design.",
-  repoUrl: "https://github.com/amxv/origo",
+    "A reusable Go MCP server template with stateless Streamable HTTP, API-key authentication, sample tools, Vercel deployment and ZueDocs.",
+  repoUrl: "https://github.com/amxv/go-mcp-template",
   accentColor: "#0369a1",
   accentColorDark: "#38bdf8",
   footerSections: [
     {
-      title: "Origo",
-      text: "A small, source-first MCP service for agents. No search engine, no CLI distribution."
+      title: "Go MCP Template",
+      text: "A provider-agnostic Go MCP server with a tiny tool surface and dependable Vercel hosting."
     },
     {
-      title: "Project status",
-      text: "Transport and deployments are being established. Read-link and site mapping are planned, not yet implemented."
+      title: "What is included",
+      text: "Two runnable sample tools, stateless MCP HTTP, simple authentication, automated Go checks, and bundled ZueDocs."
     },
     {
       title: "Repository",
       linkPrefix: "Source: ",
-      linkHref: "https://github.com/amxv/origo",
-      linkLabel: "github.com/amxv/origo (private)"
+      linkHref: "https://github.com/amxv/go-mcp-template",
+      linkLabel: "github.com/amxv/go-mcp-template"
     }
   ]
 } as const;

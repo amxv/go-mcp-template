@@ -1,18 +1,18 @@
 ---
 title: Documentation site
-description: Maintain the Origo Astro/ZueDocs documentation app.
+description: Customize the bundled Astro/ZueDocs app for your new MCP project.
 order: 4
 category: Operations
-summary: Docs content, ZueDocs integration, and local checks.
+summary: Docs navigation, Markdown content, and site deployment.
 ---
 
-Origo uses the ZueDocs-powered Astro site inherited from the Go bootstrap template. It lives entirely in `docs/` and deploys independently of the Go MCP API.
+The ZueDocs application is self-contained in `docs/`. It can be built or deployed without installing or publishing a CLI.
 
 ```bash
 make docs-install
 make docs-dev
 ```
 
-Edit articles in `docs/src/content/docs/`, the navigation and site identity in `docs/src/data/docs.ts`, and the landing page in `docs/src/pages/index.astro`.
+Write articles in `docs/src/content/docs/`, update branding/navigation in `docs/src/data/docs.ts`, and customize the landing page in `docs/src/pages/index.astro`. Run `make docs-check` then `make docs-build` **sequentially** before merging changes.
 
-Before a docs deployment, run `make docs-check` and `make docs-build` **sequentially**. Pushing `main` triggers the Vercel docs project automatically.
+Create a separate Vercel project with Root Directory `docs` to serve the static site. Keep the MCP API key only in the API project, never in documentation build variables.

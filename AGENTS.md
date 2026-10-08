@@ -1,10 +1,10 @@
-# Origo agent instructions
+# Go MCP Template agent instructions
 
-- Origo is a serverless Go MCP service, **not a CLI**. Do not restore npm wrappers, release workflows, CLI commands, or search APIs.
-- The only planned public MCP tools are `read_link` and `map_site`; neither is implemented. Obtain design approval before implementing retrieval features.
-- The API deployment uses the repository root; ZueDocs is independently deployed from `docs/`.
-- Keep endpoint authentication through `ORIGO_API_KEY` using exactly one `?key=` query parameter. Never log credentials or full authenticated request URLs.
-- Use the official Go MCP SDK with stateless Streamable HTTP for serverless deployments.
-- `make check` runs Go tests/vet; `make docs-check` and `make docs-build` must run **serially** after `make docs-install`.
-- Pushes to `main` trigger Vercel deployments. There is no manual release or npm publication.
-- Keep credentials out of the repository. Update README/docs when the protocol or deployment changes.
+- This repository is an MCP server template, **not a CLI**. Keep deployment through Vercel rather than npm or GitHub Releases.
+- Use the official Go MCP SDK and **stateless Streamable HTTP** so Vercel functions don't require persistent sessions.
+- The only Go Function entrypoint is `api/mcp.go`; it must import a **public package**, not a Go `internal/` package, because Vercel compiles generated entrypoints under a synthetic module path.
+- Authentication is via one `?key=` parameter matching the `MCP_API_KEY` environment variable. Missing configuration fails closed. Never log full authenticated URLs.
+- `pkg/server/tools.go` contains working examples: one text tool and one structured-output tool. Remove or replace them when implementing an actual service.
+- `make check` runs Go tests and vet. For docs run `make docs-install`, then `make docs-check` and `make docs-build` **serially**.
+- Root deployment goes to one Vercel project. ZueDocs lives entirely under `docs/`, designed for a separate project with Root Directory `docs`.
+- Do not copy API keys, credentials or user-specific domains into this template.
