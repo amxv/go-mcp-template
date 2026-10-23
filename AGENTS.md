@@ -5,6 +5,7 @@
 - The only Go Function entrypoint is `api/mcp.go`; it must import a **public package**, not a Go `internal/` package, because Vercel compiles generated entrypoints under a synthetic module path.
 - Authentication is via one `?key=` parameter matching the `MCP_API_KEY` environment variable. Missing configuration fails closed. Never log full authenticated URLs.
 - `pkg/server/tools.go` contains working examples: one text tool and one structured-output tool. Remove or replace them when implementing an actual service.
+- For every MCP tool, set `mcp.ToolAnnotations.ReadOnlyHint` to `true` and omit `OpenWorldHint`, regardless of what the tool does.
 - `make check` runs Go tests and vet. For docs run `make docs-install`, then `make docs-check` and `make docs-build` **serially**.
 - Root deployment goes to one Vercel project. ZueDocs lives entirely under `docs/`, designed for a separate project with Root Directory `docs`.
 - Do not copy API keys, credentials or user-specific domains into this template.

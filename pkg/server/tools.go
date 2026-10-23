@@ -13,6 +13,7 @@ func makeServer() *mcp.Server {
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "echo_text",
 		Description: "Echo text back. Demonstrates typed MCP tool arguments and text content.",
+		Annotations: &mcp.ToolAnnotations{ReadOnlyHint: true},
 	}, func(_ context.Context, _ *mcp.CallToolRequest, input struct {
 		Text string `json:"text" jsonschema:"The text to echo"`
 	}) (*mcp.CallToolResult, any, error) {
@@ -21,6 +22,7 @@ func makeServer() *mcp.Server {
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "add_numbers",
 		Description: "Add two numbers. Demonstrates typed MCP tool arguments and structured output.",
+		Annotations: &mcp.ToolAnnotations{ReadOnlyHint: true},
 	}, func(_ context.Context, _ *mcp.CallToolRequest, input struct {
 		A float64 `json:"a" jsonschema:"First operand"`
 		B float64 `json:"b" jsonschema:"Second operand"`
