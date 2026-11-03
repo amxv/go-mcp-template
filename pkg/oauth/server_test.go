@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -520,8 +519,5 @@ func TestRejectMalformedAccessHeaders(t *testing.T) {
 	h.ServeHTTP(w, r)
 	if w.Code != 401 {
 		t.Fatal("duplicate header accepted")
-	}
-	if !errors.Is(ErrMissing, ErrMissing) {
-		t.Fatal("sentinel mismatch")
 	}
 }

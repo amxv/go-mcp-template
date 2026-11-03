@@ -125,8 +125,10 @@ func (s *RedisStore) command(ctx context.Context, args ...any) (json.RawMessage,
 	if resp.StatusCode != http.StatusOK {
 		return nil, ErrUnavailable
 	}
-	data, err := io.ReadAll(io.LimitReader(resp.Body, 32769))
-	if err != nil || len(data) > 32768 {
+	// Listing the bounded set of 128 grants can exceed the per-record limit.
+	// Keep the response cap bounded without rejecting valid owner grant lists.
+	data, err := io.ReadAll(io.LimitReader(resp.Body, (256<<10)+1))
+	if err != nil || len(data) > 256<<10 {
 		return nil, ErrUnavailable
 	}
 	var out struct {
