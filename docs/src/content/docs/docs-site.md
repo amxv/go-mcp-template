@@ -15,4 +15,4 @@ make docs-dev
 
 Write articles in `docs/src/content/docs/`, update branding/navigation in `docs/src/data/docs.ts`, and customize the landing page in `docs/src/pages/index.astro`. Run `make docs-check` then `make docs-build` **sequentially** before merging changes.
 
-Create a separate Vercel project with Root Directory `docs` to serve the static site. Keep the MCP API key only in the API project, never in documentation build variables.
+Create a separate Vercel project with Root Directory `docs` to serve the static site. Keep **all API authentication credentials** (`MCP_API_KEY`, OAuth owner secret, and Redis token) only in the API project, never in documentation build variables.

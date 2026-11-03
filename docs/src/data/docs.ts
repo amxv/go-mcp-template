@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "Go MCP Template",
   strapline: "A small Go MCP server for Vercel",
   description:
-    "A reusable Go MCP server template with stateless Streamable HTTP, API-key authentication, sample tools, Vercel deployment and ZueDocs.",
+    "A reusable Go MCP server template with stateless Streamable HTTP, selectable URL-key or OAuth authentication, sample tools, Vercel deployment and ZueDocs.",
   repoUrl: "https://github.com/amxv/go-mcp-template",
   accentColor: "#0369a1",
   accentColorDark: "#38bdf8",
@@ -13,7 +13,7 @@ export const siteConfig = {
     },
     {
       title: "What is included",
-      text: "Two runnable sample tools, stateless MCP HTTP, simple authentication, automated Go checks, and bundled ZueDocs."
+      text: "Two runnable sample tools, stateless MCP HTTP, key or OAuth authentication, automated Go checks, and bundled ZueDocs."
     },
     {
       title: "Repository",

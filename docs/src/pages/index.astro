@@ -7,7 +7,7 @@ const docs = (await getCollection("docs")).sort((a, b) => a.data.order - b.data.
 const capabilities = [
   { title: "Real MCP from day one", body: "Two working sample tools demonstrate unstructured text and typed JSON output." },
   { title: "Native Go", body: "Official MCP Go SDK with tiny handlers and straightforward Go tests." },
-  { title: "Serverless", body: "Stateless Streamable HTTP runs as a single Go Function on Vercel." },
+  { title: "Vercel-ready", body: "Stateless Streamable HTTP on a Go Function or an OAuth-enabled native Go server." },
   { title: "Docs included", body: "A fully isolated Astro + ZueDocs site can deploy from the same GitHub repository." }
 ];
 ---
@@ -21,7 +21,7 @@ const capabilities = [
         Build your next MCP service in Go without reimplementing HTTP transport,
         JSON-RPC wiring, authentication or deployments. Replace the sample tools and ship.
       </p>
-      <p class="hero__annotation">No CLI, npm distribution, release tags, or persistent session store required.</p>
+      <p class="hero__annotation">No CLI, npm distribution, or release tags. Key mode needs no database; OAuth uses Redis for durable grants.</p>
       <div class="hero__actions">
         <a class="button button--solid" href="/docs/quickstart">Quickstart</a>
         <a class="button button--ghost" href="/docs/architecture">Architecture</a>
@@ -32,7 +32,7 @@ const capabilities = [
       <ul class="hero__signal-list">
         <li><strong>echo_text</strong> — validated text input and text output.</li>
         <li><strong>add_numbers</strong> — validated numeric input and structured JSON output.</li>
-        <li><strong>?key=</strong> — production API key authentication with fail-closed defaults.</li>
+        <li><strong>Auth choice</strong> — private <code>?key=</code> URL or OAuth with ChatGPT sign-in and consent.</li>
       </ul>
       <div class="hero__terminal">
         <span>api/mcp.go</span>
