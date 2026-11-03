@@ -8,6 +8,7 @@ import (
 )
 
 func TestMCPRequiresConfiguredKey(t *testing.T) {
+	t.Setenv("MCP_AUTH_MODE", "key")
 	t.Setenv("MCP_API_KEY", "")
 	req := httptest.NewRequest(http.MethodPost, "/mcp?key=example", nil)
 	recorder := httptest.NewRecorder()
@@ -18,6 +19,7 @@ func TestMCPRequiresConfiguredKey(t *testing.T) {
 }
 
 func TestMCPRejectsMissingAndInvalidKeys(t *testing.T) {
+	t.Setenv("MCP_AUTH_MODE", "key")
 	t.Setenv("MCP_API_KEY", "my-private-key")
 	for _, path := range []string{"/mcp", "/mcp?key=wrong", "/mcp?key=my-private-key&key=wrong"} {
 		req := httptest.NewRequest(http.MethodPost, path, nil)
@@ -33,6 +35,7 @@ func TestMCPRejectsMissingAndInvalidKeys(t *testing.T) {
 }
 
 func TestMCPStatelessHandshakeAndSampleTools(t *testing.T) {
+	t.Setenv("MCP_AUTH_MODE", "key")
 	t.Setenv("MCP_API_KEY", "my-private-key")
 	for _, test := range []struct {
 		name     string
@@ -58,5 +61,34 @@ func TestMCPStatelessHandshakeAndSampleTools(t *testing.T) {
 				t.Fatalf("unexpected response: %s", recorder.Body.String())
 			}
 		})
+	}
+}
+
+func TestOAuthModeNeverFallsBackToQueryKey(t *testing.T) {
+	t.Setenv("MCP_AUTH_MODE", "oauth")
+	t.Setenv("MCP_API_KEY", "my-private-key")
+	t.Setenv("MCP_OAUTH_ISSUER", "https://api.example.com")
+	t.Setenv("MCP_OAUTH_OWNER_SECRET", "owner-secret-123456789012345678901234567890")
+	t.Setenv("MCP_OAUTH_REDIS_REST_URL", "https://redis.example.com")
+	t.Setenv("MCP_OAUTH_REDIS_REST_TOKEN", "redis-secret-not-real")
+	for _, path := range []string{"/mcp?key=my-private-key", "/mcp"} {
+		r := httptest.NewRequest(http.MethodPost, "https://api.example.com"+path, nil)
+		w := httptest.NewRecorder()
+		Handler().ServeHTTP(w, r)
+		if w.Code != http.StatusUnauthorized {
+			t.Fatalf("key bypassed OAuth at %s: status %d", path, w.Code)
+		}
+	}
+	t.Setenv("MCP_OAUTH_REDIS_REST_TOKEN", "")
+	w := httptest.NewRecorder()
+	Handler().ServeHTTP(w, httptest.NewRequest(http.MethodPost, "https://api.example.com/mcp?key=my-private-key", nil))
+	if w.Code != http.StatusServiceUnavailable {
+		t.Fatalf("incomplete OAuth fell back to key: %d", w.Code)
+	}
+	t.Setenv("MCP_AUTH_MODE", "not-a-mode")
+	w = httptest.NewRecorder()
+	Handler().ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/mcp?key=my-private-key", nil))
+	if w.Code != http.StatusServiceUnavailable {
+		t.Fatalf("unknown mode fell back to key: %d", w.Code)
 	}
 }

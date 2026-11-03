@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
+
+	"github.com/amxv/go-mcp-template/pkg/oauth"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -17,14 +20,75 @@ var transport = mcp.NewStreamableHTTPHandler(
 	&mcp.StreamableHTTPOptions{Stateless: true, JSONResponse: true},
 )
 
-// Handler enforces the private MCP connection key on every request.
-// A missing server key always fails closed, including during deployments.
+var oauthCache struct {
+	sync.Mutex
+	configuration [32]byte
+	handler       http.Handler
+}
+
+func oauthHandler() (http.Handler, error) {
+	// Cache the expensive HTTP clients between Vercel warm invocations, but
+	// recognize changes to the environment in local development and tests.
+	names := []string{"MCP_OAUTH_ISSUER", "MCP_OAUTH_OWNER_SECRET", "MCP_OAUTH_REDIS_REST_URL", "MCP_OAUTH_REDIS_REST_TOKEN", "MCP_OAUTH_CLIENTS_JSON"}
+	var input strings.Builder
+	for _, name := range names {
+		value := os.Getenv(name)
+		input.WriteString(name)
+		input.WriteByte(0)
+		input.WriteString(value)
+		input.WriteByte(0)
+	}
+	fingerprint := sha256.Sum256([]byte(input.String()))
+	oauthCache.Lock()
+	defer oauthCache.Unlock()
+	if oauthCache.handler != nil && oauthCache.configuration == fingerprint {
+		return oauthCache.handler, nil
+	}
+	config, err := oauth.ConfigFromEnv()
+	if err != nil {
+		return nil, err
+	}
+	store, err := oauth.NewRedisStoreFromEnv(config.Issuer)
+	if err != nil {
+		return nil, err
+	}
+	server, err := oauth.New(config, store)
+	if err != nil {
+		return nil, err
+	}
+	oauthCache.configuration = fingerprint
+	oauthCache.handler = server.Handler(transport)
+	return oauthCache.handler, nil
+}
+
+// Handler selects exactly one authentication mode. The existing query-key
+// flow is the default for backwards compatibility; OAuth never falls back
+// to a query key, even if MCP_API_KEY is also configured.
 func Handler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Robots-Tag", "noindex")
+
+		mode := strings.TrimSpace(os.Getenv("MCP_AUTH_MODE"))
+		if mode == "oauth" {
+			handler, err := oauthHandler()
+			if err != nil {
+				http.Error(w, "OAuth endpoint not configured", http.StatusServiceUnavailable)
+				return
+			}
+			handler.ServeHTTP(w, r)
+			return
+		}
+		if mode != "" && mode != "key" {
+			http.Error(w, "Invalid authentication mode", http.StatusServiceUnavailable)
+			return
+		}
+		if r.URL.Path != "/mcp" && r.URL.Path != "/api/mcp" {
+			http.NotFound(w, r)
+			return
+		}
 
 		secret := strings.TrimSpace(os.Getenv("MCP_API_KEY"))
 		if secret == "" {
