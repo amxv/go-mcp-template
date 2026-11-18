@@ -1,10 +1,13 @@
 package server
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestMCPRequiresConfiguredKey(t *testing.T) {
@@ -58,5 +61,63 @@ func TestMCPStatelessHandshakeAndSampleTools(t *testing.T) {
 				t.Fatalf("unexpected response: %s", recorder.Body.String())
 			}
 		})
+	}
+}
+
+func TestMCPStaticCatalogCompletesSubscription(t *testing.T) {
+	t.Setenv("MCP_API_KEY", "my-private-key")
+	server := httptest.NewServer(Handler())
+	t.Cleanup(server.Close)
+	client := server.Client()
+	client.Timeout = 2 * time.Second
+	const meta = `"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientInfo":{"name":"test","version":"1"},"io.modelcontextprotocol/clientCapabilities":{}`
+	post := func(method, params string) (string, string) {
+		t.Helper()
+		req, err := http.NewRequest(http.MethodPost, server.URL+"/mcp?key=my-private-key",
+			strings.NewReader(`{"jsonrpc":"2.0","id":1,"method":"`+method+`","params":`+params+`}`))
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json, text/event-stream")
+		req.Header.Set("Mcp-Protocol-Version", "2026-07-28")
+		req.Header.Set("Mcp-Method", method)
+		response, err := client.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer response.Body.Close()
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			t.Fatalf("%s did not complete cleanly: %v", method, err)
+		}
+		if response.StatusCode != http.StatusOK {
+			t.Fatalf("%s failed: %d %s", method, response.StatusCode, body)
+		}
+		return response.Header.Get("Content-Type"), string(body)
+	}
+
+	kind, discovery := post("server/discover", `{"_meta":{`+meta+`}}`)
+	var discovered struct {
+		Result struct {
+			Capabilities struct {
+				Tools   *struct{ ListChanged bool }
+				Logging *struct{}
+			}
+		}
+	}
+	if err := json.Unmarshal([]byte(discovery), &discovered); err != nil {
+		t.Fatal(err)
+	}
+	caps := discovered.Result.Capabilities
+	if kind != "application/json" || caps.Tools == nil || caps.Tools.ListChanged || caps.Logging == nil {
+		t.Fatalf("expected static tools and logging, got %s %s", kind, discovery)
+	}
+	kind, body := post("subscriptions/listen", `{"_meta":{`+meta+`},"notifications":{"toolsListChanged":true}}`)
+	if kind != "text/event-stream" ||
+		!strings.Contains(body, `"method":"notifications/subscriptions/acknowledged"`) ||
+		!strings.Contains(body, `"notifications":{}`) ||
+		!strings.Contains(body, `"resultType":"complete"`) {
+		t.Fatalf("expected empty acknowledgement and completed SSE response, got %s %s", kind, body)
 	}
 }

@@ -25,6 +25,8 @@ Stateless MCP server     pkg/server/tools.go
 
 The code uses the official `github.com/modelcontextprotocol/go-sdk/mcp` implementation. Streamable HTTP is **stateless** with JSON responses, so any Vercel function instance can handle any request.
 
+The sample tool catalog is static, so it explicitly leaves `tools.listChanged` disabled. This preserves tool discovery and listing without inviting a long-lived `subscriptions/listen` request. The Go SDK can open an SSE stream for that POST even with JSON responses enabled. Only set `ListChanged: true` for a catalog that changes at runtime, and host it where long-lived requests are supported.
+
 The `MCP_API_KEY` is loaded from the runtime environment and checked in constant time. Missing configuration returns HTTP 503; an absent or incorrect key returns HTTP 401. Responses include no-store and no-referrer headers.
 
 ## Adding a tool

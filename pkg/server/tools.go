@@ -9,7 +9,13 @@ import (
 // These are intentionally small, non-privileged examples. Replace or remove
 // them when implementing your own MCP server; the HTTP transport stays intact.
 func makeServer() *mcp.Server {
-	s := mcp.NewServer(&mcp.Implementation{Name: "go-mcp-template", Version: "0.1.0"}, nil)
+	s := mcp.NewServer(&mcp.Implementation{Name: "go-mcp-template", Version: "0.1.0"}, &mcp.ServerOptions{
+		Capabilities: &mcp.ServerCapabilities{
+			// The static catalog does not need long-lived list-change subscriptions.
+			Tools:   &mcp.ToolCapabilities{},
+			Logging: &mcp.LoggingCapabilities{},
+		},
+	})
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "echo_text",
 		Description: "Echo text back. Demonstrates typed MCP tool arguments and text content.",
